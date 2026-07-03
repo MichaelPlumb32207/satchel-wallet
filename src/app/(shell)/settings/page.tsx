@@ -5,7 +5,7 @@ import { QRCodeSVG } from 'qrcode.react';
 import { useState } from 'react';
 import { Check, Copy, ShieldCheck, ShieldAlert } from 'lucide-react';
 import { accountXpub } from '@/lib/bitcoin/derivation';
-import { getNetwork, NETWORKS, type NetworkId } from '@/lib/networks';
+import { NETWORKS, type NetworkId } from '@/lib/networks';
 import { WrongPasswordError } from '@/lib/vault/crypto';
 import {
   changePassword,

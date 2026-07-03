@@ -6,6 +6,9 @@ import { ArrowLeft, Eye, KeyRound, Sparkles } from 'lucide-react';
 import { CreateWallet } from '@/components/onboarding/CreateWallet';
 import { ImportSeed } from '@/components/onboarding/ImportSeed';
 import { ImportWatch } from '@/components/onboarding/ImportWatch';
+import { NetworkToggle } from '@/components/NetworkToggle';
+import { getNetwork } from '@/lib/networks';
+import { useSettingsStore } from '@/stores/settings';
 import { useWalletsStore } from '@/stores/wallets';
 
 type Mode = 'chooser' | 'create' | 'import' | 'watch';
@@ -20,6 +23,9 @@ export default function OnboardingPage() {
   const router = useRouter();
   const [mode, setMode] = useState<Mode>('chooser');
   const hasWallets = useWalletsStore((s) => s.wallets.length > 0);
+  const network = useSettingsStore((s) => s.network);
+  const setNetwork = useSettingsStore((s) => s.setNetwork);
+  const isPractice = getNetwork(network).isPractice;
 
   const done = () => router.replace('/');
 
@@ -44,7 +50,17 @@ export default function OnboardingPage() {
           </button>
         ) : null}
         <span className="text-lg font-bold tracking-tight text-accent">Satchel</span>
+        <div className="ml-auto">
+          <NetworkToggle />
+        </div>
       </header>
+
+      {isPractice && (
+        <div className="mb-4 rounded-xl bg-accent-dim px-4 py-2.5 text-sm text-accent-strong">
+          Practice mode — you&apos;ll use free testnet coins, so there&apos;s no real money at
+          risk. Great for learning.
+        </div>
+      )}
 
       {mode === 'chooser' ? (
         <div className="flex flex-1 flex-col">
@@ -86,7 +102,28 @@ export default function OnboardingPage() {
 
           {!hasWallets && (
             <p className="mt-auto pt-8 text-center text-xs text-neutral-600">
-              Tip: you can try everything risk-free in Practice mode with free testnet coins.
+              {isPractice ? (
+                <>
+                  You&apos;re in Practice mode.{' '}
+                  <button
+                    onClick={() => setNetwork('mainnet')}
+                    className="font-semibold text-accent underline-offset-2 hover:underline"
+                  >
+                    Switch to real Bitcoin
+                  </button>
+                </>
+              ) : (
+                <>
+                  New to Bitcoin?{' '}
+                  <button
+                    onClick={() => setNetwork('testnet4')}
+                    className="font-semibold text-accent underline-offset-2 hover:underline"
+                  >
+                    Try Practice mode
+                  </button>{' '}
+                  first — free testnet coins, zero risk.
+                </>
+              )}
             </p>
           )}
         </div>
