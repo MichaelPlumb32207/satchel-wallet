@@ -1,0 +1,66 @@
+# Satchel — Memory
+
+Last Updated: 2026-07-03
+
+Cross-session knowledge: decisions, architecture, and gotchas that aren't
+obvious from the code.
+
+## Product decisions
+- **Self-custody + watch-only.** Keys are generated and encrypted client-side,
+  never leave the device. Watch-only wallets follow an xpub without keys.
+- **Practice mode is first-class.** The mainnet↔testnet4 toggle re-themes the
+  app teal and labels amounts tBTC; the goal is risk-free learning on the
+  *same* wallet you'll use for real. (Same seed → coin type 0' = real,
+  1' = practice; separate branches, never mix.)
+- **On-chain only** for v1 (no Lightning).
+- **Slim explorer only:** tx + address detail pages; deep-link to
+  mempool.space rather than rebuilding a full explorer.
+- Name "Satchel" (a satchel carries your sats).
+
+## Architecture
+- **Crypto:** `@scure/@noble` stack, not bitcoinjs-lib — audited, pure ESM,
+  `Uint8Array` end-to-end, zero polyfills (the POC's biggest tooling pain).
+- **Derivation:** BIP84 `m/84'/{0|1}'/0'`, external `/0/i` and internal change
+  `/1/i` chains, gap limit 20. `ScriptType` param threads taproot through for
+  a future BIP86 flip; only `p2wpkh` exposed in v1.
+- **State:** Zustand (`settings`, `wallets` metadata, `session` lock-status) +
+  TanStack Query for all mempool.space data. Query keys are namespaced by
+  network so a network toggle swaps caches instantly.
+- **PWA:** hand-rolled service worker (NOT Serwist — it's a webpack plugin and
+  the build uses Turbopack); offline wallet data comes from the Query
+  persister in IndexedDB, not the SW.
+
+## Security model
+- One app password → scrypt (N=2¹⁶, r=8, p=1) → AES-256-GCM over
+  `{wallets:[{mnemonic, passphrase?}]}` in IndexedDB.
+- Decrypted material lives ONLY in `src/lib/vault/keyring.ts` (module closure).
+  On unlock, derive account-level xprvs then wipe the seed. Lock =
+  `wipePrivateData()` + null refs. Zustand/React never hold secrets.
+- Watch-only descriptors are public data — stored unencrypted, viewable while
+  locked (a feature).
+- Honest caveat documented in code: JS can't guarantee zeroization; the real
+  boundaries are the KDF and auto-lock.
+
+## Gotchas
+- **mempool.space rate limits hard.** Rapid address sweeps (restore scans) get
+  CORS-masked failures then hanging/timeouts, cooldown lasting minutes; 429 is
+  often NOT returned. Client (`src/lib/api/mempool.ts`) uses max-2 concurrency,
+  ~250 ms spacing, 15 s per-attempt timeout, retry-on-network-error backoff.
+  Scans run once per session (staleTime Infinity) with explicit invalidation,
+  never on a timer.
+- **No secrets in env, ever.** Static client app: a `NEXT_PUBLIC_` var ships in
+  the bundle. If a feature needs a secret, it must go behind a server route first.
+- **Spending unconfirmed:** the send flow refuses to spend unconfirmed coins
+  received from others (only own change), by design. CPFP (FEAT-002) will be a
+  deliberate, explicit exception.
+
+## Infrastructure
+- GitHub: MichaelPlumb32207/satchel-wallet (**public** — no secrets in repo)
+- Vercel: satchel-wallet.vercel.app (team liberty-concierge), auto-deploy from `main`
+- No Neon/database. External API: mempool.space (mainnet + /testnet4), keyless.
+
+## Future considerations
+- Faucet button (FEAT-001) and CPFP (FEAT-002) are the next two; see
+  [BACKLOG.md](BACKLOG.md).
+- A throwaway practice-only wallet (FEAT-003) would decouple learning from the
+  real seed.

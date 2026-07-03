@@ -1,56 +1,57 @@
 # Satchel
 
-**A self-custodial Bitcoin wallet that carries your sats.** Keys are created
-on your device, encrypted with your password, and never leave it.
+**A self-custodial Bitcoin wallet that carries your sats.** Keys are created on
+your device, encrypted with your password, and never leave it. Live at
+<https://satchel-wallet.vercel.app>.
 
-Satchel is a Next.js PWA — a rewrite of the earlier `bitpoc-ui` proof of
-concept with a security-first architecture and a UX people actually enjoy.
+## For users
+Create a wallet in seconds, or import a seed phrase or an xpub (watch-only).
+Send and receive on-chain, control fees (with one-tap RBF fee bumping), and
+learn risk-free in **Practice mode** with free testnet coins. See the
+[User Guide](docs/USER_GUIDE.md).
 
-## Highlights
-
-- **Self-custody, for real**: BIP39/BIP84 HD wallet; scrypt + AES-256-GCM
-  encrypted vault in IndexedDB; decrypted keys live only in a module closure,
-  wiped on lock; auto-lock on idle / tab-hide / page-hide.
-- **Watch-only wallets**: follow any xpub/zpub/vpub or simple `wpkh()`
-  descriptor (e.g. your hardware wallet) — viewable without unlocking.
-- **Practice mode**: one tap switches to testnet4 with a distinct teal theme.
-  Learn with free coins before touching real money.
-- **A send flow with guardrails**: live address validation with network-
-  mismatch detection, BIP21 URIs, camera QR scanning, live fee presets from
-  the mempool, MAX send, RBF on by default with one-tap fee bumping.
-- **Slim built-in explorer**: transaction and address pages, with
-  mempool.space one click away.
-- **No backend**: the only network dependency is the public mempool.space
-  REST API (rate-limit-aware client). Prices via mempool.space, mainnet only.
-- **Tested where it counts**: the crypto core (derivation, addresses, fees,
-  coin selection, PSBT signing, vault encryption) is unit-tested against
-  published BIP39/BIP84/BIP86/SLIP-132 test vectors.
-
-## Development
-
+## For developers
 ```bash
 npm install
 npm run dev        # http://localhost:3000
 npm test           # vitest — BIP vectors, vault, coin selection, PSBT
 npm run verify     # typecheck + lint + test + build (pre-push gate)
 ```
+No backend, no database, no env vars. The only network dependency is the
+public mempool.space REST API (keyless). Deploy: `git push origin HEAD:main`
+→ Vercel auto-deploys.
 
-Manual E2E: [docs/testnet-checklist.md](docs/testnet-checklist.md).
-
-## Architecture
+**Stack:** Next.js 16 (App Router) · TypeScript · Tailwind v4 ·
+`@scure`/`@noble` crypto (no polyfills) · Zustand · TanStack Query · PWA.
 
 ```
-src/lib/bitcoin/   pure crypto core (@scure/@noble stack, no Node polyfills)
-src/lib/vault/     encrypted vault + in-memory keyring (the security core)
+src/lib/bitcoin/   pure crypto core (derivation, addresses, fees, coin select, PSBT)
+src/lib/vault/     encrypted vault + in-memory keyring (security core)
 src/lib/api/       mempool.space client (typed, paced, retrying)
-src/lib/wallet/    scanner, history classification, send/bump orchestration
+src/lib/wallet/    scanner, history, send/bump orchestration
 src/stores/        zustand: settings, wallet metadata, lock status (no secrets)
-src/hooks/         TanStack Query data hooks (network-namespaced cache keys)
-src/app/           Next.js App Router UI (all wallet pages client-side)
+src/hooks/         TanStack Query data hooks (network-namespaced keys)
+src/app/           App Router UI (all wallet pages client-side)
 ```
 
-Security model in brief: one app password → scrypt (N=2^16) → AES-256-GCM
-vault holding every hot-wallet seed. On unlock, only account-level xprvs are
-derived into a module closure; the seed is wiped immediately. Watch-only
-keys are public data and stored unencrypted. **Your seed phrase is the only
-real backup — write it on paper.**
+## Documentation (`/docs`) — living documents
+Kept current on every change (see the protocol in [docs/CLAUDE.md](docs/CLAUDE.md)).
+
+| Doc | Purpose |
+|-----|---------|
+| [CLAUDE.md](docs/CLAUDE.md) | Project intelligence for AI assistants; API verification table; patterns & gotchas |
+| [USER_GUIDE.md](docs/USER_GUIDE.md) | End-user walkthrough of every flow |
+| [USE_CASE_CATALOG.md](docs/USE_CASE_CATALOG.md) | Every user-facing use case (UC-###) |
+| [TEST_PLAN.md](docs/TEST_PLAN.md) | Automated + manual test matrix (TC-### ↔ UC-###) |
+| [testnet-checklist.md](docs/testnet-checklist.md) | Manual testnet4 E2E checklist |
+| [BACKLOG.md](docs/BACKLOG.md) | Defects, enhancements, features (status-tracked) |
+| [ROADMAP.md](docs/ROADMAP.md) | Phased vision |
+| [PROGRESS.md](docs/PROGRESS.md) | Session log + current status |
+| [MEMORY.md](docs/MEMORY.md) | Cross-session decisions, architecture, gotchas |
+
+## Security in one paragraph
+One app password → scrypt (N=2¹⁶) → AES-256-GCM vault in IndexedDB holding
+every hot-wallet seed. On unlock, only account-level keys are derived into a
+module closure; the seed is wiped immediately. Watch-only keys are public data
+and stored unencrypted. **Your seed phrase is the only real backup — write it
+on paper.**
