@@ -4,17 +4,17 @@ import { useState } from 'react';
 import { unlock, wipeVault } from '@/lib/vault/keyring';
 import { WrongPasswordError } from '@/lib/vault/crypto';
 import { useSessionStore } from '@/stores/session';
-import { useWalletsStore } from '@/stores/wallets';
+import { useActiveWallet, useWalletsStore } from '@/stores/wallets';
 
 /**
- * Gates the whole app: children only render while no hot wallet exists
- * (onboarding, watch-only) or the keyring is unlocked. Locked content is
- * unmounted entirely — nothing sensitive sits in the DOM behind an overlay.
+ * Gates the app while the ACTIVE wallet needs keys: hot wallet + locked
+ * keyring -> lock screen (content fully unmounted, nothing sensitive in the
+ * DOM). Watch-only wallets are public data and stay viewable while locked.
  */
 export function LockGate({ children }: { children: React.ReactNode }) {
   const status = useSessionStore((s) => s.status);
   const hasHydrated = useWalletsStore((s) => s.hasHydrated);
-  const hasHotWallet = useWalletsStore((s) => s.wallets.some((w) => w.type === 'hot'));
+  const activeWallet = useActiveWallet();
 
   if (!hasHydrated) {
     return (
@@ -24,7 +24,7 @@ export function LockGate({ children }: { children: React.ReactNode }) {
     );
   }
 
-  if (!hasHotWallet || status === 'unlocked') {
+  if (activeWallet?.type !== 'hot' || status === 'unlocked') {
     return <>{children}</>;
   }
 
@@ -93,7 +93,23 @@ function LockScreen() {
           Forgot password?
         </button>
       )}
+      <WatchOnlyEscape />
     </div>
+  );
+}
+
+/** Watch-only wallets don't need the password — offer a way to them. */
+function WatchOnlyEscape() {
+  const watchWallet = useWalletsStore((s) => s.wallets.find((w) => w.type === 'watch'));
+  const setActiveWallet = useWalletsStore((s) => s.setActiveWallet);
+  if (!watchWallet) return null;
+  return (
+    <button
+      onClick={() => setActiveWallet(watchWallet.id)}
+      className="text-sm text-neutral-500 underline-offset-4 hover:underline"
+    >
+      View “{watchWallet.name}” without unlocking
+    </button>
   );
 }
 

@@ -14,10 +14,13 @@ import type {
  * 429/5xx.
  */
 
-const MAX_CONCURRENT = 4;
-const MAX_RETRIES = 3;
+const MAX_CONCURRENT = 2;
+const MAX_RETRIES = 4;
+/** Pace request starts — the public API rate-limits bursts hard. */
+const MIN_SPACING_MS = 250;
 
 let active = 0;
+let lastStart = 0;
 const waiters: Array<() => void> = [];
 
 async function acquireSlot(): Promise<void> {
@@ -25,6 +28,9 @@ async function acquireSlot(): Promise<void> {
     await new Promise<void>((resolve) => waiters.push(resolve));
   }
   active++;
+  const wait = lastStart + MIN_SPACING_MS - Date.now();
+  lastStart = Math.max(Date.now(), lastStart + MIN_SPACING_MS);
+  if (wait > 0) await sleep(wait);
 }
 
 function releaseSlot(): void {
@@ -44,11 +50,31 @@ export class ApiError extends Error {
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
+/** Per-attempt cap — a throttled connection can otherwise hang for minutes. */
+const ATTEMPT_TIMEOUT_MS = 15_000;
+
 async function request(url: string, init?: RequestInit): Promise<Response> {
   await acquireSlot();
   try {
     for (let attempt = 0; ; attempt++) {
-      const response = await fetch(url, init);
+      let response: Response;
+      try {
+        const timeout = AbortSignal.timeout(ATTEMPT_TIMEOUT_MS);
+        const signal = init?.signal ? AbortSignal.any([init.signal, timeout]) : timeout;
+        response = await fetch(url, { ...init, signal });
+      } catch (err) {
+        // Deliberate caller aborts propagate; anything else (network drop,
+        // per-attempt timeout, or a rate-limit response the browser masks
+        // as a CORS failure) retries with backoff.
+        if (init?.signal?.aborted) {
+          throw err;
+        }
+        if (attempt >= MAX_RETRIES) {
+          throw new ApiError(`${init?.method ?? 'GET'} ${url} failed: network error`, 0);
+        }
+        await sleep(2000 * 2 ** attempt + Math.random() * 1000);
+        continue;
+      }
       if (response.ok) return response;
 
       const retryable = response.status === 429 || response.status >= 500;
@@ -60,7 +86,7 @@ async function request(url: string, init?: RequestInit): Promise<Response> {
           response.status,
         );
       }
-      await sleep(500 * 2 ** attempt + Math.random() * 250);
+      await sleep(2000 * 2 ** attempt + Math.random() * 1000);
     }
   } finally {
     releaseSlot();
