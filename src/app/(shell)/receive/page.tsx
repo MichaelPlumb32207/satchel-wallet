@@ -1,14 +1,15 @@
 'use client';
 
+import { useQueryClient } from '@tanstack/react-query';
 import { QRCodeSVG } from 'qrcode.react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Check, Copy, Plus } from 'lucide-react';
 import { buildBip21 } from '@/lib/bitcoin/bip21';
 import { deriveAddress } from '@/lib/bitcoin/derivation';
 import { btcToSats } from '@/lib/bitcoin/units';
 import { getNetwork } from '@/lib/networks';
 import { GAP_LIMIT } from '@/lib/wallet/scanner';
-import { useAccountNode, useWalletScan } from '@/hooks/useWalletData';
+import { useAccountNode, useUtxos, useWalletScan } from '@/hooks/useWalletData';
 import { useSettingsStore } from '@/stores/settings';
 import { useActiveWallet, useWalletsStore } from '@/stores/wallets';
 import { Button, Card, Input, Label, PageTitle } from '@/components/ui';
@@ -19,6 +20,8 @@ export default function ReceivePage() {
   const config = getNetwork(network);
   const account = useAccountNode(wallet);
   const scan = useWalletScan(wallet);
+  const utxos = useUtxos(wallet);
+  const queryClient = useQueryClient();
   const bumpFloor = useWalletsStore((s) => s.bumpReceiveIndexFloor);
 
   const [amountBtc, setAmountBtc] = useState('');
@@ -33,6 +36,14 @@ export default function ReceivePage() {
     if (!wallet || !account) return null;
     return deriveAddress(account, wallet.scriptType, network, 0, index);
   }, [wallet, account, network, index]);
+
+  // The scan doesn't poll (it's expensive) — but when a payment lands on the
+  // displayed address, re-scan so the next visitor gets a fresh address.
+  useEffect(() => {
+    if (derived && utxos.data?.some((u) => u.address === derived.address)) {
+      void queryClient.invalidateQueries({ queryKey: [network, 'scan', wallet?.id] });
+    }
+  }, [derived, utxos.data, network, wallet?.id, queryClient]);
 
   const amountSats = useMemo(() => {
     try {

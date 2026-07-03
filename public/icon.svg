@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="112" fill="#0a0a0a"/>
+  <!-- satchel body -->
+  <rect x="96" y="192" width="320" height="216" rx="44" fill="#f7931a"/>
+  <!-- flap -->
+  <path d="M96 236c0-24.3 19.7-44 44-44h232c24.3 0 44 19.7 44 44v28c0 13.3-10.7 24-24 24H120c-13.3 0-24-10.7-24-24v-28z" fill="#c46f0e"/>
+  <!-- handle -->
+  <path d="M176 192v-28c0-44.2 35.8-80 80-80s80 35.8 80 80v28h-40v-28c0-22.1-17.9-40-40-40s-40 17.9-40 40v28h-40z" fill="#c46f0e"/>
+  <!-- clasp: sat symbol -->
+  <rect x="236" y="264" width="40" height="96" rx="12" fill="#16100a"/>
+  <rect x="222" y="286" width="68" height="12" rx="6" fill="#f7931a"/>
+  <rect x="222" y="326" width="68" height="12" rx="6" fill="#f7931a"/>
+</svg>
