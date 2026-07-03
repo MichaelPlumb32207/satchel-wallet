@@ -57,8 +57,13 @@ obvious from the code.
 - **No secrets in env, ever.** Static client app: a `NEXT_PUBLIC_` var ships in
   the bundle. If a feature needs a secret, it must go behind a server route first.
 - **Spending unconfirmed:** the send flow refuses to spend unconfirmed coins
-  received from others (only own change), by design. CPFP (FEAT-002) will be a
-  deliberate, explicit exception.
+  received from others (only own change), by design. CPFP ("Speed up",
+  `src/lib/wallet/cpfp.ts`) is the one deliberate exception — safe because the
+  child only pays ourselves, and it dies harmlessly if the sender replaces the
+  parent. The same trust rule applies to CPFP top-up coins.
+- **coinfaucet.eu has no address-prefill query param** — the faucet button
+  copies the receive address to the clipboard on tap instead (checked
+  2026-07-03; recheck if the faucet ever adds one).
 
 ## Infrastructure
 - GitHub: MichaelPlumb32207/satchel-wallet (**public** — no secrets in repo)
@@ -66,7 +71,6 @@ obvious from the code.
 - No Neon/database. External API: mempool.space (mainnet + /testnet4), keyless.
 
 ## Future considerations
-- Faucet button (FEAT-001) and CPFP (FEAT-002) are the next two; see
-  [BACKLOG.md](BACKLOG.md).
+- FEAT-001 (faucet button) and FEAT-002 (CPFP) shipped 2026-07-03 (v0.2.0).
 - A throwaway practice-only wallet (FEAT-003) would decouple learning from the
-  real seed.
+  real seed — the remaining Phase 1 item; see [BACKLOG.md](BACKLOG.md).

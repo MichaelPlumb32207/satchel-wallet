@@ -1,7 +1,7 @@
 # Satchel — Project Intelligence (CLAUDE.md)
 
 Last Updated: 2026-07-03
-Version: 0.1.0
+Version: 0.2.0
 
 Authoritative context for AI assistants working on Satchel. The root
 `/CLAUDE.md` is a thin pointer here.
@@ -50,8 +50,10 @@ date. Docs: <https://mempool.space/docs/api/rest>.
 - **Money math** in bigint sats via `src/lib/bitcoin/units.ts` — never floats.
 - **API** through `src/lib/api/mempool.ts` (paced, retrying); consumed via
   TanStack Query hooks in `src/hooks/useWalletData.ts`, keys namespaced by network.
-- **Send/bump** orchestration in `src/lib/wallet/{send,bump}.ts`; PSBT in
-  `src/lib/bitcoin/psbt.ts`.
+- **Send/bump/speed-up** orchestration in `src/lib/wallet/{send,bump,cpfp}.ts`
+  (RBF for our own sends, CPFP for received payments); PSBT in
+  `src/lib/bitcoin/psbt.ts`. `planCpfp` is pure — the caller fetches the
+  parent tx and broadcasts via `executeSend`.
 
 ## Common tasks
 - Run tests: `npm test`. Pre-push gate: `npm run verify` (typecheck→lint→test→build).
@@ -65,7 +67,8 @@ date. Docs: <https://mempool.space/docs/api/rest>.
 - **Turbopack build** — don't add webpack-plugin-based tooling (why the SW is
   hand-rolled, not Serwist).
 - **Don't spend unconfirmed receives** — the send flow filters them out by
-  design; CPFP will be the explicit exception.
+  design; CPFP (`cpfp.ts`, the "Speed up" dialog) is the one deliberate
+  exception, and it only pays ourselves.
 - **Change goes to the internal chain** (`/1/i`) — never reuse a receive
   address for change (the POC bug this rewrite fixed).
 
@@ -75,4 +78,4 @@ Vercel team **Liberty Concierge**. One push to `main` per change; never
 `vercel --prod` (double-bills). No Neon/DB for this project.
 
 ---
-_Last updated 2026-07-03 (v0.1.0 — 8-doc set: merged verification into USE_CASE_CATALOG (ENH-002); ENH-001 onboarding toggle pending deploy)._
+_Last updated 2026-07-03 (v0.2.0 — FEAT-001 faucet button + FEAT-002 CPFP "Speed up" shipped; ENH-001 confirmed deployed)._

@@ -51,9 +51,11 @@ Incoming payments appear on **Home** as *pending* within about 30 seconds, then
 confirm once a miner includes them in a block.
 
 ### Getting practice coins
-In Practice mode, get free testnet4 coins from a faucet (e.g.
-coinfaucet.eu/en/btc-testnet4), pasting your `tb1…` receive address. Faucets
-are often busy or empty — if one errors, just try another.
+In Practice mode, the Receive screen has a **Get free practice coins** button.
+Tapping it copies your address and opens a faucet site — just paste, and the
+coins arrive in your wallet within a minute or so. Faucets are community-run
+and occasionally empty; if one errors, search for another testnet4 faucet and
+paste the same address there.
 
 ## 5. Sending bitcoin
 
@@ -72,11 +74,22 @@ You'll get a link to the transaction. It shows as *pending* until it confirms.
 
 ## 6. If a payment gets stuck
 
-Sent a transaction with too low a fee? On **History**, a pending outgoing
-payment shows a **Bump fee** button. Tap it, choose a higher rate, and Satchel
-rebroadcasts the same payment at the new fee (the recipient still gets the
-exact same amount). This uses "Replace-by-Fee" (RBF), which Satchel enables on
-every send by default.
+**A payment you sent:** on **History**, a pending outgoing payment shows a
+**Bump fee** button. Tap it, choose a higher rate, and Satchel rebroadcasts
+the same payment at the new fee (the recipient still gets the exact same
+amount). This uses "Replace-by-Fee" (RBF), which Satchel enables on every send
+by default.
+
+**A payment you're waiting to receive:** you can't change someone else's
+transaction, but you can still hurry it along. A pending incoming payment
+shows a **Speed up** button — Satchel attaches a tiny transaction of your own
+that pays extra fee, and miners confirm the two together. You pay only the
+boost. If the sender cancels or replaces their payment first, your boost
+simply becomes void — you can't lose money trying. (Bitcoiners call this
+"child pays for parent," but you don't need to remember that.)
+
+Practice tip: send yourself a payment at the **Slow** fee in Practice mode,
+then try both buttons — it's the best way to learn fees with zero stakes.
 
 ## 7. History & details
 

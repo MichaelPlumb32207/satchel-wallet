@@ -11,15 +11,15 @@ first-class Practice mode. Deployed at satchel-wallet.vercel.app.
 Onboarding · encrypted vault + auto-lock · send/receive · RBF fee bump ·
 slim explorer · PWA · mainnet + testnet4.
 
-## Phase 1 — Complete the learning loop (next)
+## Phase 1 — Complete the learning loop (in progress)
 Make Practice mode genuinely frictionless for a newcomer, and finish the
 fee-management story.
-- **FEAT-001 — Faucet button.** Remove the faucet scavenger hunt; one tap to
-  get practice coins. (Highest value: it's the first wall a learner hits.)
-- **FEAT-002 — CPFP "Speed up".** RBF handles your own stuck sends; CPFP is the
-  only tool for a stuck payment you *received*. Together they close the loop.
+- ~~**FEAT-001 — Faucet button.**~~ Shipped 2026-07-03: one tap opens a
+  verified faucet with your address already on the clipboard.
+- ~~**FEAT-002 — CPFP "Speed up".**~~ Shipped 2026-07-03: RBF handles your own
+  stuck sends; CPFP pulls a stuck *received* payment forward. Fee story closed.
 - **FEAT-003 — Throwaway practice wallet.** Let true beginners learn on a seed
-  with no connection to real funds.
+  with no connection to real funds. (The remaining Phase 1 item.)
 
 ## Phase 2 — Broaden custody & convenience
 - **FEAT-006 — Hardware wallet signing.** Watch-only already follows their

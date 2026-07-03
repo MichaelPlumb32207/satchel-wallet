@@ -10,7 +10,7 @@ apart. Lower-level tests that back many use cases at once live under
 
 ## Testing strategy
 - **Automated (A):** Vitest over the pure crypto/wallet core — the highest-risk
-  code. `npm test` (94 tests). Referenced per use case and enumerated under
+  code. `npm test` (105 tests). Referenced per use case and enumerated under
   Automated core coverage.
 - **Manual (M):** testnet4 walkthrough in Practice mode with free faucet coins;
   step-by-step list in [testnet-checklist.md](testnet-checklist.md).
@@ -122,6 +122,17 @@ use, or manual "New address"), with a gap-limit guard.
 | UC-010·H | M | Tap "New address" | A different unused address is shown |
 | UC-010·E1 | M | Rotate near the gap limit | Warning about restore-scan visibility |
 
+### UC-026 — Get practice coins from a faucet
+**Actor:** Learner (Practice mode) · **Happy path:** Tap **Get free practice
+coins** on Receive; the current address is copied and a verified testnet4
+faucet opens in a new tab — paste, and coins arrive as a pending payment.
+
+| Test | Type | Scenario | Expected |
+|------|------|----------|----------|
+| UC-026·H | M | Tap the button in Practice mode | Faucet opens in a new tab; "Address copied" hint shows; pasted address receives coins |
+| UC-026·E1 | M | Same screen on Mainnet | No faucet button rendered |
+| UC-026·E2 | M | Clipboard permission denied | Faucet still opens; user copies the address manually from the card above |
+
 ## Send
 
 ### UC-011 — Send bitcoin
@@ -166,6 +177,23 @@ higher-fee version; recipient amount unchanged.
 | UC-014·H | M | Bump a 1 sat/vB send to a fast rate | Replacement broadcasts; original superseded; recipient amount identical |
 | UC-014·E1 | M | New rate ≤ current rate | Rejected ("must beat current rate") |
 | UC-014·E2 | M | Bump shown only on pending, RBF-signaling, own sends | No bump button on received/confirmed txs |
+
+### UC-027 — Speed up a pending incoming payment (CPFP)
+**Actor:** User · **Happy path:** A payment someone sent us is stuck at a low
+fee. Tap **Speed up** on the pending incoming tx in History, pick a target
+rate, preview the boost cost, broadcast — a small self-payment whose fee pulls
+the whole package into the next blocks. The one deliberate exception to the
+"never spend unconfirmed receives" rule (safe: the child only pays ourselves).
+
+| Test | Type | Scenario | Expected |
+|------|------|----------|----------|
+| UC-027·H | M | Speed up a low-fee incoming faucet payment | Boost broadcasts; both txs confirm together; coins land on our change address |
+| UC-027·E1 | A | Package fee math at target rate | `child_fee = target × (parent_vsize + child_vsize) − parent_fee`, exact |
+| UC-027·E2 | A | Anchor output too small for the boost | Tops up from confirmed/own-change coins only — never others' unconfirmed |
+| UC-027·E3 | A | Target rate ≤ parent's current rate | Rejected ("already pays N sat/vB") |
+| UC-027·E4 | A | Parent confirmed / outputs already spent / boost unaffordable | Clear per-case errors; no plan produced |
+| UC-027·E5 | A | Boost output goes to our own next free change address | Address matches `m/84'/…/1/next` |
+| UC-027·E6 | M | Button visibility | Only on pending incoming txs whose output is still unspent, hot wallets only |
 
 ## History & explorer
 
@@ -299,9 +327,11 @@ Pure-function suites in `src/**/*.test.ts` that underpin many use cases at once
 | CORE-11 | Units | sats↔BTC exactness (bigint), formatting |
 | CORE-12 | History | Tx classification (in/out/self), net amounts, dedupe, ordering |
 | CORE-13 | Scanner | Gap-limit scan across both chains; progress; stops at the gap |
+| CORE-14 | CPFP | `planCpfp` package fee math, relay floor, top-up trust rule, change targeting, error paths (11 tests) |
 
 ## Known verification gaps
-- Live send + fee-bump on testnet4 depend on faucet coins (user smoke test).
+- Live send + fee-bump + CPFP speed-up on testnet4 depend on faucet coins
+  (user smoke test; UC-027·H not yet run against the network).
 - mempool.space public API throttles request bursts; heavy restore scans can
   transiently rate-limit the browser's IP — mitigated by request pacing (see
   [MEMORY.md](MEMORY.md)).

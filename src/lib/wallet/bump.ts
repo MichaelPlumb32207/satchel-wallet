@@ -168,7 +168,8 @@ function requiredFee(
   return targetFee > floor ? targetFee : floor;
 }
 
-function nextFreeChangeIndex(ourAddresses: Map<string, DerivedAddress>): number {
+/** First unused index on the internal change chain, given every derived address. */
+export function nextFreeChangeIndex(ourAddresses: Map<string, DerivedAddress>): number {
   let max = -1;
   for (const derived of ourAddresses.values()) {
     if (derived.chain === 1) max = Math.max(max, derived.index);

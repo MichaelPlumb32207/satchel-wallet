@@ -6,8 +6,9 @@ your device, encrypted with your password, and never leave it. Live at
 
 ## For users
 Create a wallet in seconds, or import a seed phrase or an xpub (watch-only).
-Send and receive on-chain, control fees (with one-tap RBF fee bumping), and
-learn risk-free in **Practice mode** with free testnet coins. See the
+Send and receive on-chain and take control of fees — one-tap RBF bumping for
+your own sends, and a "Speed up" (CPFP) for payments you're waiting on. Learn
+risk-free in **Practice mode**: one tap gets free testnet coins from a faucet. See the
 [User Guide](docs/USER_GUIDE.md).
 
 ## For developers
@@ -28,7 +29,7 @@ public mempool.space REST API (keyless). Deploy: `git push origin HEAD:main`
 src/lib/bitcoin/   pure crypto core (derivation, addresses, fees, coin select, PSBT)
 src/lib/vault/     encrypted vault + in-memory keyring (security core)
 src/lib/api/       mempool.space client (typed, paced, retrying)
-src/lib/wallet/    scanner, history, send/bump orchestration
+src/lib/wallet/    scanner, history, send/bump/cpfp orchestration
 src/stores/        zustand: settings, wallet metadata, lock status (no secrets)
 src/hooks/         TanStack Query data hooks (network-namespaced keys)
 src/app/           App Router UI (all wallet pages client-side)

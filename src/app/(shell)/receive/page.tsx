@@ -26,6 +26,7 @@ export default function ReceivePage() {
 
   const [amountBtc, setAmountBtc] = useState('');
   const [copied, setCopied] = useState(false);
+  const [faucetCopied, setFaucetCopied] = useState(false);
 
   const floor = wallet?.receiveIndexFloor?.[network] ?? 0;
   const scannedNext = scan.data?.receive.nextIndex ?? 0;
@@ -139,14 +140,31 @@ export default function ReceivePage() {
       )}
 
       {config.faucetUrl && (
-        <a
-          href={config.faucetUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="mt-4 block rounded-xl bg-accent-dim px-4 py-3 text-center text-sm font-semibold text-accent transition hover:brightness-110"
-        >
-          Get practice coins from a faucet
-        </a>
+        <div className="mt-4">
+          <a
+            href={config.faucetUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() => {
+              // One less step for the learner: their address is on the
+              // clipboard when the faucet page opens.
+              void navigator.clipboard.writeText(derived.address).catch(() => {});
+              setFaucetCopied(true);
+            }}
+            className="block rounded-xl bg-accent-dim px-4 py-3 text-center text-sm font-semibold text-accent transition hover:brightness-110"
+          >
+            Get free practice coins
+          </a>
+          <p className="mt-2 text-center text-xs text-neutral-500">
+            {faucetCopied ? (
+              <span className="text-accent">
+                Address copied — paste it on the faucet page and the coins arrive here.
+              </span>
+            ) : (
+              'Opens a faucet site that gives out free tBTC — perfect for trying a first payment.'
+            )}
+          </p>
+        </div>
       )}
     </div>
   );

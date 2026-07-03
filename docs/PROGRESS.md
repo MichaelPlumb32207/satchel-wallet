@@ -1,9 +1,50 @@
 # Satchel — Progress
 
 Last Updated: 2026-07-03
-Version: 0.1.0
+Version: 0.2.0
 
 ## Session Log
+
+### Session 2 — 2026-07-03 — Phase 1: faucet button (FEAT-001) + CPFP "Speed up" (FEAT-002)
+
+**Context:** First two Phase 1 items — make Practice mode frictionless and
+close the fee-management loop (RBF for your own sends + CPFP for stuck
+received payments). Version 0.1.0 → 0.2.0.
+
+**FEAT-001 — "Get free practice coins":**
+- `faucetUrl` set to `https://coinfaucet.eu/en/btc-testnet4/` (re-verified live
+  today; it paid out during the v1 smoke test). No prefill query param exists,
+  so tapping the button copies the current receive address to the clipboard
+  and shows "Address copied — paste it on the faucet page."
+- Mainnet shows no faucet UI (verified in-browser).
+
+**FEAT-002 — CPFP "Speed up":**
+- New pure planner `src/lib/wallet/cpfp.ts` (`planCpfp`): spends all our
+  outputs of the pending parent to our own next change address, with
+  `child_fee = target × (parent_vsize + child_vsize) − parent_fee`, floored at
+  the child's own 1 sat/vB relay minimum; tops up from confirmed/own-change
+  coins when the anchor can't cover the boost (never others' unconfirmed).
+  The deliberate exception to the "don't spend unconfirmed receives" rule.
+- `SpeedUpDialog` (jargon-free copy, fast-rate default, package-rate preview,
+  "boost dies harmlessly if the sender cancels" note); "Speed up" pill on
+  pending incoming txs in History while their output is still in the UTXO set.
+  Shared `nextFreeChangeIndex` exported from `bump.ts`.
+- 11 new unit tests (`cpfp.test.ts`): package math, change-address targeting,
+  multi-output anchors, top-ups, trust rule, relay floor, all error paths.
+
+**Also:** marked ENH-001 deployed (it shipped with the v1 push — the
+"pending deploy" note was stale).
+
+**Verification:** 105 tests green (94 → 105); `npm run verify` passes.
+In-browser (dev server): Practice-mode receive shows the faucet button +
+copied-hint on tap and correct href; mainnet hides it; History renders with
+zero console errors. **Not yet live-tested:** an actual CPFP broadcast needs a
+pending incoming testnet payment — part of the user's next smoke test.
+
+**Next session priorities:**
+- User smoke test on deploy: faucet coins → send → RBF bump → CPFP speed-up
+  (docs/testnet-checklist.md).
+- FEAT-003 (throwaway practice wallet) to finish Phase 1.
 
 ### Session 1 — 2026-07-02 → 2026-07-03 — Full rewrite of bitpoc-ui → Satchel, ship & deploy
 

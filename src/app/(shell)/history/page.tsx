@@ -1,19 +1,31 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import type { WalletTx } from '@/lib/wallet/history';
-import { useTxHistory } from '@/hooks/useWalletData';
+import { useTxHistory, useUtxos } from '@/hooks/useWalletData';
 import { useActiveWallet } from '@/stores/wallets';
 import { BumpFeeDialog } from '@/components/BumpFeeDialog';
+import { SpeedUpDialog } from '@/components/SpeedUpDialog';
 import { TxList } from '@/components/TxList';
 import { PageTitle } from '@/components/ui';
 
 export default function HistoryPage() {
   const wallet = useActiveWallet();
   const history = useTxHistory(wallet);
+  const utxos = useUtxos(wallet);
   const [bumping, setBumping] = useState<WalletTx | null>(null);
+  const [speedingUp, setSpeedingUp] = useState<WalletTx | null>(null);
+
+  // A pending incoming payment is speed-up-able only while its output to us
+  // is still unspent (i.e. present in the UTXO set).
+  const anchorTxids = useMemo(
+    () => new Set((utxos.data ?? []).filter((u) => !u.confirmed).map((u) => u.txid)),
+    [utxos.data],
+  );
 
   if (!wallet) return null;
+
+  const canAct = wallet.type === 'hot';
 
   return (
     <div>
@@ -31,23 +43,39 @@ export default function HistoryPage() {
       ) : (
         <TxList
           txs={history.data ?? []}
-          renderAction={(tx) =>
-            tx.bumpable && wallet.type === 'hot' ? (
-              <button
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  setBumping(tx);
-                }}
-                className="mt-1 rounded-full bg-accent-dim px-2.5 py-0.5 text-[11px] font-semibold text-accent transition hover:brightness-125"
-              >
-                Bump fee
-              </button>
-            ) : null
-          }
+          renderAction={(tx) => {
+            if (!canAct) return null;
+            if (tx.bumpable) {
+              return (
+                <ActionPill label="Bump fee" onClick={() => setBumping(tx)} />
+              );
+            }
+            if (tx.direction === 'in' && !tx.confirmed && anchorTxids.has(tx.txid)) {
+              return (
+                <ActionPill label="Speed up" onClick={() => setSpeedingUp(tx)} />
+              );
+            }
+            return null;
+          }}
         />
       )}
       {bumping && <BumpFeeDialog tx={bumping} onClose={() => setBumping(null)} />}
+      {speedingUp && <SpeedUpDialog tx={speedingUp} onClose={() => setSpeedingUp(null)} />}
     </div>
+  );
+}
+
+function ActionPill({ label, onClick }: { label: string; onClick: () => void }) {
+  return (
+    <button
+      onClick={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        onClick();
+      }}
+      className="mt-1 rounded-full bg-accent-dim px-2.5 py-0.5 text-[11px] font-semibold text-accent transition hover:brightness-125"
+    >
+      {label}
+    </button>
   );
 }

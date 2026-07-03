@@ -19,7 +19,7 @@ export interface NetworkConfig {
   isPractice: boolean;
   /**
    * When set, the receive screen shows a "Get practice coins" button linking here.
-   * Deliberately null in v1 — designed hook for the faucet feature.
+   * No prefill query param — the receive page copies the address on tap instead.
    */
   faucetUrl: string | null;
 }
@@ -45,7 +45,8 @@ export const NETWORKS: Record<NetworkId, NetworkConfig> = {
     coinType: 1,
     btc: TEST_NETWORK,
     isPractice: true,
-    faucetUrl: null,
+    // Verified live + paying 2026-07-03 (used for the deploy smoke test).
+    faucetUrl: 'https://coinfaucet.eu/en/btc-testnet4/',
   },
 };
 
