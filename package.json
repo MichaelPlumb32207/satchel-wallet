@@ -20,6 +20,7 @@
     "@scure/btc-signer": "^2.2.0",
     "@tanstack/react-query": "^5.101.2",
     "idb-keyval": "^6.2.6",
+    "lucide-react": "^1.23.0",
     "next": "16.2.10",
     "qrcode.react": "^4.2.0",
     "react": "19.2.4",

@@ -1,26 +1,40 @@
 @import "tailwindcss";
 
+/*
+ * Satchel theme. The accent system is driven by data-network on <html>:
+ * mainnet = bitcoin orange, practice (testnet4) = teal. Components use
+ * accent tokens (bg-accent, text-accent, ...) and re-skin automatically
+ * when the user switches networks.
+ */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #0a0a0a;
+  --foreground: #f5f5f5;
+  --accent: #f7931a; /* bitcoin orange */
+  --accent-strong: #fdaa40;
+  --accent-contrast: #16100a;
+  --accent-dim: rgba(247, 147, 26, 0.12);
+}
+
+[data-network="testnet4"] {
+  --accent: #2dd4bf; /* teal — unmistakably not real money */
+  --accent-strong: #5eead4;
+  --accent-contrast: #042f2e;
+  --accent-dim: rgba(45, 212, 191, 0.12);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-accent: var(--accent);
+  --color-accent-strong: var(--accent-strong);
+  --color-accent-contrast: var(--accent-contrast);
+  --color-accent-dim: var(--accent-dim);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
 }
