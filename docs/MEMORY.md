@@ -5,6 +5,12 @@ Last Updated: 2026-07-03
 Cross-session knowledge: decisions, architecture, and gotchas that aren't
 obvious from the code.
 
+## Documentation
+- **Eight living docs** (not nine): `USE_CASE_CATALOG.md` embeds its own
+  verification (happy path + edge cases per use case, plus an "Automated core
+  coverage" table) — there is no separate `TEST_PLAN.md`. This co-locates spec
+  and tests so they can't drift, and is the cross-project standard (ENH-002).
+
 ## Product decisions
 - **Self-custody + watch-only.** Keys are generated and encrypted client-side,
   never leave the device. Watch-only wallets follow an xpub without keys.

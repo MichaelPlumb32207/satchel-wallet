@@ -19,10 +19,12 @@ qrcode.react · qr-scanner · lucide-react. No database, no server, no env vars.
 
 ## Mandatory protocol (this user, every project)
 For **every** code change / feature / fix: (1) implement with best practices,
-(2) **read and update ALL nine living docs in `/docs/`** even if only to
+(2) **read and update ALL eight living docs in `/docs/`** even if only to
 confirm "no change required" — `BACKLOG.md`, `CLAUDE.md`, `MEMORY.md`,
-`PROGRESS.md`, `README.md`, `ROADMAP.md`, `TEST_PLAN.md`,
-`USE_CASE_CATALOG.md`, `USER_GUIDE.md` — matching each doc's existing format,
+`PROGRESS.md`, `README.md`, `ROADMAP.md`, `USE_CASE_CATALOG.md`,
+`USER_GUIDE.md` — matching each doc's existing format. `USE_CASE_CATALOG.md`
+embeds its own verification (happy path + edge cases per use case, plus a core
+coverage table) — there is no separate `TEST_PLAN.md`.
 (3) commit and push to `main` (Vercel auto-deploys). Never commit code without
 the doc pass.
 
@@ -73,4 +75,4 @@ Vercel team **Liberty Concierge**. One push to `main` per change; never
 `vercel --prod` (double-bills). No Neon/DB for this project.
 
 ---
-_Last updated 2026-07-03 (v0.1.0 — initial 9-doc scaffold; ENH-001 onboarding toggle pending deploy)._
+_Last updated 2026-07-03 (v0.1.0 — 8-doc set: merged verification into USE_CASE_CATALOG (ENH-002); ENH-001 onboarding toggle pending deploy)._

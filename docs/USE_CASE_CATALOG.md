@@ -2,32 +2,306 @@
 
 Last Updated: 2026-07-03
 
-Every user-facing flow in Satchel. IDs are stable; add new rows, don't renumber.
+Use cases with embedded verification. Each use case describes a flow (its happy
+path) and carries its own acceptance tests directly beneath it — happy path
+plus edge cases and validations — so the spec and its verification never drift
+apart. Lower-level tests that back many use cases at once live under
+**Automated core coverage**.
 
-| UC-ID | Actor | Title | Description |
-|-------|-------|-------|-------------|
-| UC-001 | New user | Create a new wallet | Generate a 12/24-word BIP39 wallet, set an app password, land on the dashboard with a backup reminder |
-| UC-002 | User | Import from seed phrase | Restore an existing wallet by typing its 12/24 words (live BIP39 validation), optional passphrase; runs a gap-limit restore scan |
-| UC-003 | User | Import watch-only | Paste an xpub/zpub/tpub/vpub or `wpkh()` descriptor to follow a wallet's balance/history without keys; auto-detects network |
-| UC-004 | User | Back up seed phrase | Password-gated reveal of the seed, then a 3-word verification quiz; clears the backup nag when passed |
-| UC-005 | User | Unlock wallet | Enter the app password to decrypt the vault and load account keys into memory |
-| UC-006 | User | Auto-lock | Wallet locks after idle timeout, on tab-hide (configurable), and on page-hide; keys wiped from memory |
-| UC-007 | User | Switch network / Practice mode | Toggle mainnet ↔ testnet4; practice mode re-themes teal and labels amounts tBTC. Available on onboarding and in-app |
-| UC-008 | User | View balance | See confirmed + pending balance, toggle BTC/sats, fiat value (mainnet only), pending indicator |
-| UC-009 | User | Receive | Show current unused address as QR + text, copy, optionally request a specific amount (BIP21) |
-| UC-010 | User | Rotate receive address | Advance to a fresh receive address (auto after use, or manual "New address"), with gap-limit guard |
-| UC-011 | User | Send bitcoin | Enter recipient (validated), amount, pick a fee preset or custom rate, review, sign, broadcast; RBF on by default |
-| UC-012 | User | Send max | Sweep the full spendable balance to one recipient minus fee, no change output |
-| UC-013 | User | Paste/scan payment request | Fill the send form from a `bitcoin:` BIP21 URI (paste) or a camera QR scan |
-| UC-014 | User | Bump fee (RBF) | Replace a stuck unconfirmed outgoing tx with a higher-fee version; recipient amount unchanged |
-| UC-015 | User | View history | See all incoming/outgoing/self transactions, pending vs confirmed, fiat at current price |
-| UC-016 | User | View transaction detail | Slim explorer: status/confirmations, fee, fee rate, size, inputs/outputs with "yours" badges, link out to mempool.space |
-| UC-017 | User | View address detail | Slim explorer: any address's balance, tx count, and recent activity |
-| UC-018 | User | Manage multiple wallets | Add additional hot/watch wallets under one password; switch the active wallet |
-| UC-019 | User | Show / export account xpub | Reveal the account extended public key (QR + copy) to set up watch-only elsewhere |
-| UC-020 | User | Change password | Re-encrypt the vault under a new app password (requires the current one) |
-| UC-021 | User | Configure display & security | Set fiat currency, BTC/sats default, auto-lock timeout, and tab-hide lock behavior |
-| UC-022 | User | Remove a wallet | Delete a single wallet's keys/metadata from the device (password-gated for hot wallets) |
-| UC-023 | User | Forgot password / wipe | Erase the vault (typed "WIPE" confirmation) and restore from seed phrase |
-| UC-024 | User | Install & use offline (PWA) | Install to home screen; view last-known balance/history offline (send disabled offline) |
-| UC-025 | Watch-only user | View without unlocking | Browse a watch-only wallet's balance and history with no password (public data) |
+## Testing strategy
+- **Automated (A):** Vitest over the pure crypto/wallet core — the highest-risk
+  code. `npm test` (94 tests). Referenced per use case and enumerated under
+  Automated core coverage.
+- **Manual (M):** testnet4 walkthrough in Practice mode with free faucet coins;
+  step-by-step list in [testnet-checklist.md](testnet-checklist.md).
+- **Pre-push gate:** `npm run verify` = typecheck → lint → test → `next build`,
+  stop on first failure.
+
+Test IDs are anchored to their use case: `UC-###·H` = happy path,
+`UC-###·E#` = edge/validation. **Type** is A (automated) or M (manual).
+
+---
+
+## Onboarding & keys
+
+### UC-001 — Create a new wallet
+**Actor:** New user · **Happy path:** Generate a 12/24-word BIP39 wallet, set an
+app password, land on the dashboard with a backup reminder.
+
+| Test | Type | Scenario | Expected |
+|------|------|----------|----------|
+| UC-001·H | M | Create → 12 words → set password → continue | Lands on dashboard; backup nag shown |
+| UC-001·E1 | M | Password under 8 chars | Blocked with "at least 8 characters" |
+| UC-001·E2 | M | Password ≠ confirmation | Blocked with "passwords don't match" |
+| UC-001·E3 | M | Create a 2nd wallet when a vault already exists | Prompted for existing password, not a new one |
+
+### UC-002 — Import from seed phrase
+**Actor:** User · **Happy path:** Restore by typing 12/24 words (live BIP39
+validation), optional passphrase; a gap-limit restore scan finds prior activity.
+
+| Test | Type | Scenario | Expected |
+|------|------|----------|----------|
+| UC-002·H | M | Enter a valid 12-word phrase → import | Restore scan runs; existing balance/history appear |
+| UC-002·E1 | M | Non-BIP39 word in the phrase | Flagged inline; import disabled |
+| UC-002·E2 | M | Valid words, bad checksum / wrong order | "Checksum doesn't match"; import disabled |
+| UC-002·E3 | M | Wrong word count (e.g. 13) | "a seed phrase has 12 or 24"; import disabled |
+| UC-002·E4 | M | Extra whitespace / mixed case | Normalized and accepted |
+
+### UC-003 — Import watch-only
+**Actor:** User · **Happy path:** Paste an xpub/zpub/tpub/vpub or `wpkh()`
+descriptor to follow a wallet without keys; network auto-detected.
+
+| Test | Type | Scenario | Expected |
+|------|------|----------|----------|
+| UC-003·H | M | Paste a mainnet zpub | Auto-switches to mainnet; balance/history load |
+| UC-003·E1 | A | xpub derives the same addresses as the private node | Addresses match; signing throws "watch-only" |
+| UC-003·E2 | M | Paste an xprv (private key) | Rejected with a "never share it" warning |
+| UC-003·E3 | M | Paste a ypub (nested segwit) or garbage | Clear "not supported / not recognized" error |
+| UC-003·E4 | M | Send from a watch-only wallet | Send is disabled |
+
+### UC-004 — Back up seed phrase
+**Actor:** User · **Happy path:** Password-gated reveal, then a 3-word
+verification quiz; clears the backup nag when passed.
+
+| Test | Type | Scenario | Expected |
+|------|------|----------|----------|
+| UC-004·H | M | Reveal → write down → pass the 3-word quiz | Nag cleared; wallet marked backed up |
+| UC-004·E1 | M | Wrong password at reveal | Rejected; words not shown |
+| UC-004·E2 | M | Fail the quiz | Returns to the words; not marked verified |
+
+## Session & security
+
+### UC-005 — Unlock wallet
+**Actor:** User · **Happy path:** Enter the app password to decrypt the vault
+and load account keys into memory.
+
+| Test | Type | Scenario | Expected |
+|------|------|----------|----------|
+| UC-005·H | M | Correct password on the lock screen | Unlocks to the dashboard |
+| UC-005·E1 | M | Wrong password | "Wrong password"; stays locked |
+| UC-005·E2 | A | Vault decrypt with wrong password / tampered blob | Both reject (AES-GCM auth); never returns garbage |
+
+### UC-006 — Auto-lock
+**Actor:** User · **Happy path:** Locks after idle timeout, on tab-hide
+(configurable), and on page-hide; keys wiped from memory.
+
+| Test | Type | Scenario | Expected |
+|------|------|----------|----------|
+| UC-006·H | M | Idle past the configured timeout | Locks; unlock required |
+| UC-006·E1 | M | Reload the page | Re-locks (hot wallet) |
+| UC-006·E2 | M | Switch active wallet to watch-only, then reload | Viewable without unlocking |
+
+### UC-023 — Forgot password / wipe
+**Actor:** User · **Happy path:** Erase the vault (typed "WIPE" confirmation)
+and restore from the seed phrase.
+
+| Test | Type | Scenario | Expected |
+|------|------|----------|----------|
+| UC-023·H | M | Forgot password → type WIPE → restore from seed | Vault erased; seed restores the same wallet |
+| UC-023·E1 | M | Confirmation text ≠ "WIPE" | Erase button stays disabled |
+| UC-023·E2 | M | Wipe with a watch-only wallet also present | Hot wallet removed; watch-only survives |
+
+## Receive
+
+### UC-009 — Receive
+**Actor:** User · **Happy path:** Show the current unused address as QR + text,
+copy, optionally request a specific amount (BIP21).
+
+| Test | Type | Scenario | Expected |
+|------|------|----------|----------|
+| UC-009·H | M | Open Receive; send faucet coins to the address | Address QR shown; payment appears pending in ~30 s |
+| UC-009·E1 | A | Build/parse a BIP21 URI with amount + label | Round-trips exactly |
+| UC-009·E2 | M | Watch-only wallet on the wrong network | "Switch network" notice instead of an address |
+
+### UC-010 — Rotate receive address
+**Actor:** User · **Happy path:** Advance to a fresh receive address (auto after
+use, or manual "New address"), with a gap-limit guard.
+
+| Test | Type | Scenario | Expected |
+|------|------|----------|----------|
+| UC-010·H | M | Tap "New address" | A different unused address is shown |
+| UC-010·E1 | M | Rotate near the gap limit | Warning about restore-scan visibility |
+
+## Send
+
+### UC-011 — Send bitcoin
+**Actor:** User · **Happy path:** Enter a validated recipient, amount, pick a fee
+preset or custom rate, review, sign, broadcast; RBF on by default.
+
+| Test | Type | Scenario | Expected |
+|------|------|----------|----------|
+| UC-011·H | M | Valid address, amount, Normal fee, confirm | Signs, broadcasts, pending; tx link shown |
+| UC-011·E1 | A/M | Testnet address while on mainnet (or vice versa) | "Wrong network" error; send blocked |
+| UC-011·E2 | A | Inputs can't cover amount + fee | "Short by N sats" |
+| UC-011·E3 | M | Paste a `bitcoin:` URI | Recipient + amount prefilled |
+| UC-011·E4 | A | Amount below the dust limit for the address type | Rejected |
+| UC-011·E5 | M | Try to spend only just-received unconfirmed coins | Blocked ("no confirmed coins yet") by design |
+| UC-011·E6 | A | Signed tx decodes; RBF sequence set; vsize ≤ estimate | Final, `0xfffffffd`, 1-in-2-out = 141 vB |
+
+### UC-012 — Send max
+**Actor:** User · **Happy path:** Sweep the full spendable balance to one
+recipient minus fee, no change output.
+
+| Test | Type | Scenario | Expected |
+|------|------|----------|----------|
+| UC-012·H | M | Tap MAX → confirm | Recipient gets total − fee; tx detail shows no change output |
+| UC-012·E1 | A | Balance too small to cover the fee | "Nothing to send / too small after fees" |
+
+### UC-013 — Paste / scan payment request
+**Actor:** User · **Happy path:** Fill the send form from a BIP21 URI (paste) or
+a camera QR scan.
+
+| Test | Type | Scenario | Expected |
+|------|------|----------|----------|
+| UC-013·H | M | Scan a receive QR | Recipient (and amount, if present) prefilled |
+| UC-013·E1 | A | BIP21 with an unsupported `req-` param | Rejected with a clear message |
+| UC-013·E2 | M | Camera permission denied | "Camera unavailable — paste instead" |
+
+### UC-014 — Bump fee (RBF)
+**Actor:** User · **Happy path:** Replace a stuck unconfirmed outgoing tx with a
+higher-fee version; recipient amount unchanged.
+
+| Test | Type | Scenario | Expected |
+|------|------|----------|----------|
+| UC-014·H | M | Bump a 1 sat/vB send to a fast rate | Replacement broadcasts; original superseded; recipient amount identical |
+| UC-014·E1 | M | New rate ≤ current rate | Rejected ("must beat current rate") |
+| UC-014·E2 | M | Bump shown only on pending, RBF-signaling, own sends | No bump button on received/confirmed txs |
+
+## History & explorer
+
+### UC-015 — View history
+**Actor:** User · **Happy path:** See incoming/outgoing/self transactions,
+pending vs confirmed, fiat at current price.
+
+| Test | Type | Scenario | Expected |
+|------|------|----------|----------|
+| UC-015·H | M | Open History | Txs listed newest-first, pending on top |
+| UC-015·E1 | A | Classify in/out/self, net amount, dedupe, ordering | Correct direction + net; deduped; pending first |
+
+### UC-016 — View transaction detail
+**Actor:** User · **Happy path:** Status/confirmations, fee, fee rate, size,
+inputs/outputs with "yours" badges, link out to mempool.space.
+
+| Test | Type | Scenario | Expected |
+|------|------|----------|----------|
+| UC-016·H | M | Open a tx on the live site | Status/fee/size + inputs/outputs render; our output tagged "yours" |
+| UC-016·E1 | M | Unknown / not-found txid | "Transaction not found on <network>" |
+
+### UC-017 — View address detail
+**Actor:** User · **Happy path:** Any address's balance, tx count, and recent
+activity.
+
+| Test | Type | Scenario | Expected |
+|------|------|----------|----------|
+| UC-017·H | M | Open an address page | Balance, tx count, recent activity shown |
+| UC-017·E1 | M | Address with 25+ txs | "Showing most recent…" note; link out for full history |
+
+## Wallet & settings
+
+### UC-007 — Switch network / Practice mode
+**Actor:** User · **Happy path:** Toggle mainnet ↔ testnet4; practice re-themes
+teal and labels amounts tBTC. Available on onboarding and in-app.
+
+| Test | Type | Scenario | Expected |
+|------|------|----------|----------|
+| UC-007·H | M | Tap the network pill (onboarding or header) | Theme flips teal/orange; tBTC/BTC labels update; banner in practice |
+| UC-007·E1 | M | Switch network with a wallet loaded | Same wallet, different addresses/balance; caches isolated |
+
+### UC-008 — View balance
+**Actor:** User · **Happy path:** Confirmed + pending balance, BTC/sats toggle,
+fiat (mainnet only), pending indicator.
+
+| Test | Type | Scenario | Expected |
+|------|------|----------|----------|
+| UC-008·H | M | Open Home with funds | Balance + fiat shown; tap toggles BTC/sats |
+| UC-008·E1 | A | sats↔BTC conversion + formatting | Exact (bigint), no float drift |
+| UC-008·E2 | M | Practice mode | No fiat shown (worthless by design) |
+
+### UC-018 — Manage multiple wallets
+**Actor:** User · **Happy path:** Add additional hot/watch wallets under one
+password; switch the active wallet.
+
+| Test | Type | Scenario | Expected |
+|------|------|----------|----------|
+| UC-018·H | M | Add a 2nd wallet; use the header switcher | Both listed; switching changes balance/history |
+
+### UC-019 — Show / export account xpub
+**Actor:** User · **Happy path:** Reveal the account extended public key (QR +
+copy) to set up watch-only elsewhere.
+
+| Test | Type | Scenario | Expected |
+|------|------|----------|----------|
+| UC-019·H | M | Settings → Show xpub | xpub QR + copy; note that it reveals history but can't spend |
+| UC-019·E1 | M | Wallet locked | Prompt to unlock before deriving xpub |
+
+### UC-020 — Change password
+**Actor:** User · **Happy path:** Re-encrypt the vault under a new password
+(requires the current one).
+
+| Test | Type | Scenario | Expected |
+|------|------|----------|----------|
+| UC-020·H | M | Enter current + new (twice) | Vault re-encrypted; new password unlocks, old fails |
+| UC-020·E1 | M | Wrong current password | Rejected |
+| UC-020·E2 | M | New password mismatch / too short | Blocked |
+
+### UC-021 — Configure display & security
+**Actor:** User · **Happy path:** Set fiat currency, BTC/sats default, auto-lock
+timeout, and tab-hide lock behavior.
+
+| Test | Type | Scenario | Expected |
+|------|------|----------|----------|
+| UC-021·H | M | Change currency / unit / auto-lock timer | Persists across reloads; applied app-wide |
+
+### UC-022 — Remove a wallet
+**Actor:** User · **Happy path:** Delete a single wallet's keys/metadata from
+the device (password-gated for hot wallets).
+
+| Test | Type | Scenario | Expected |
+|------|------|----------|----------|
+| UC-022·H | M | Danger zone → remove hot wallet (with password) | Wallet gone; others intact |
+| UC-022·E1 | M | Remove a watch-only wallet | No password required (public data) |
+
+### UC-024 — Install & use offline (PWA)
+**Actor:** User · **Happy path:** Install to home screen; view last-known
+balance/history offline (send disabled offline).
+
+| Test | Type | Scenario | Expected |
+|------|------|----------|----------|
+| UC-024·H | M | Install; go offline; reopen | Cached balance/history under an "offline" banner |
+| UC-024·E1 | M | Attempt to send while offline | Sending disabled |
+
+### UC-025 — View watch-only without unlocking
+**Actor:** Watch-only user · **Happy path:** Browse a watch-only wallet's
+balance/history with no password.
+
+| Test | Type | Scenario | Expected |
+|------|------|----------|----------|
+| UC-025·H | M | Active wallet is watch-only, app locked | Balance/history viewable; no unlock prompt |
+
+---
+
+## Automated core coverage
+Pure-function suites in `src/**/*.test.ts` that underpin many use cases at once
+(run via `npm test`). These are the correctness backbone behind the flows above.
+
+| Test | Area | Verifies |
+|------|------|----------|
+| CORE-01 | Derivation | BIP84 vs published vectors (first receive = `bc1qcr8te4kr609gcawutmrza0j4xv80jy8z306fyu`) |
+| CORE-02 | Derivation | Internal change chain `/1/i` (fixes the POC change-to-receive bug); testnet4 `tb1q` |
+| CORE-03 | Derivation | BIP86 taproot vectors (feature-flagged off in UI) |
+| CORE-04 | Addresses | bech32/bech32m + base58 validation; network-mismatch detection |
+| CORE-05 | SLIP-132 | zpub/vpub ↔ xpub/tpub conversion + descriptor parsing |
+| CORE-06 | BIP21 | Payment-URI parse/build round-trip; `req-` rejection |
+| CORE-07 | Fees | Per-script-type vsize tables (1-in-2-out P2WPKH = 141 vB); dust thresholds |
+| CORE-08 | Coin select | Effective-value selection; sub-dust-to-fee; insufficient-funds reporting |
+| CORE-09 | PSBT | Build/sign/finalize; RBF sequence; real vsize ≤ estimate |
+| CORE-10 | Vault | scrypt + AES-GCM encrypt/decrypt; wrong-password + tamper rejection; version guard |
+| CORE-11 | Units | sats↔BTC exactness (bigint), formatting |
+| CORE-12 | History | Tx classification (in/out/self), net amounts, dedupe, ordering |
+| CORE-13 | Scanner | Gap-limit scan across both chains; progress; stops at the gap |
+
+## Known verification gaps
+- Live send + fee-bump on testnet4 depend on faucet coins (user smoke test).
+- mempool.space public API throttles request bursts; heavy restore scans can
+  transiently rate-limit the browser's IP — mitigated by request pacing (see
+  [MEMORY.md](MEMORY.md)).

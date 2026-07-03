@@ -11,6 +11,7 @@ tables. Longer-term vision lives in [ROADMAP.md](ROADMAP.md).
 | ID | Type | Title | Priority | Status |
 |----|------|-------|----------|--------|
 | ENH-001 | Enhancement | Network/Practice toggle unreachable on onboarding | Medium | Fixed (pending deploy) |
+| ENH-002 | Enhancement | Merge TEST_PLAN into USE_CASE_CATALOG (8-doc standard) | Low | Done |
 
 ## Features (open)
 

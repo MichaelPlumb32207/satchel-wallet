@@ -57,6 +57,11 @@ security-first, self-custodial Bitcoin PWA people will actually use.
 **Status:** LIVE at satchel-wallet.vercel.app. Core wallet functional on
 mainnet + testnet4.
 
+**Docs (ENH-002):** merged `TEST_PLAN.md` into `USE_CASE_CATALOG.md` — each use
+case now carries its own verification (happy path + edge cases), with a shared
+"Automated core coverage" table for the pure-lib suites. Living-docs set is now
+**eight** (was nine); adopted as the cross-project standard.
+
 **Next session priorities:**
 - Push ENH-001 (onboarding toggle) to deploy.
 - User completes the testnet4 send + fee-bump smoke test (needs faucet coins).

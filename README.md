@@ -41,8 +41,7 @@ Kept current on every change (see the protocol in [docs/CLAUDE.md](docs/CLAUDE.m
 |-----|---------|
 | [CLAUDE.md](docs/CLAUDE.md) | Project intelligence for AI assistants; API verification table; patterns & gotchas |
 | [USER_GUIDE.md](docs/USER_GUIDE.md) | End-user walkthrough of every flow |
-| [USE_CASE_CATALOG.md](docs/USE_CASE_CATALOG.md) | Every user-facing use case (UC-###) |
-| [TEST_PLAN.md](docs/TEST_PLAN.md) | Automated + manual test matrix (TC-### ↔ UC-###) |
+| [USE_CASE_CATALOG.md](docs/USE_CASE_CATALOG.md) | Every user-facing use case (UC-###) with its embedded verification (happy path + edge cases) |
 | [testnet-checklist.md](docs/testnet-checklist.md) | Manual testnet4 E2E checklist |
 | [BACKLOG.md](docs/BACKLOG.md) | Defects, enhancements, features (status-tracked) |
 | [ROADMAP.md](docs/ROADMAP.md) | Phased vision |
