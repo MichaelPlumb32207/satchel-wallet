@@ -2,6 +2,7 @@
 
 Last Updated: 2026-07-17
 
+
 Satchel is a Bitcoin wallet that lives in your browser. Your keys are made on
 your device and locked with your password — no company holds your money, and
 no account or email is required. This guide walks through everything.
@@ -124,6 +125,10 @@ public explorer.
 - **Show xpub:** reveal your account public key (to set up watch-only on
   another device). This reveals your balance and history but can never spend.
 - **Danger zone:** remove a wallet, or erase everything from this device.
+- **Security & trust** (footer link): how keys stay on-device, what Satchel
+  never does, an honest threat model, the public GitHub repo, and the **exact
+  git commit** this build was made from (so you can match the live site to
+  source).
 
 ## 9. Locking & unlocking
 
@@ -161,6 +166,18 @@ recovery for a lost password *and* a lost device.
   address (or vice versa). Switch networks or check the address.
 - **Send disabled?** Either you're on a watch-only wallet, you're offline, or
   your only coins are still unconfirmed.
+
+## 13. Security & trust (open source)
+
+Satchel is **self-custodial** and **open source**. Settings → **Security & trust**
+summarizes the model in-app. Highlights:
+
+- Keys and password stay on your device; there is no Satchel account server.
+- Source: [github.com/MichaelPlumb32207/satchel-wallet](https://github.com/MichaelPlumb32207/satchel-wallet).
+- Production builds show a short **commit id** that links to that exact revision
+  on GitHub — so the site you use can be checked against the public code.
+- Open source means the code is **reviewable**. It does **not** by itself mean a
+  formal third-party audit has been published.
 
 ## Safety reminders
 - Your seed phrase = your money. Paper only, private, never typed into a website.

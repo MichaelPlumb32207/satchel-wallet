@@ -20,6 +20,8 @@ fee-management story.
   stuck sends; CPFP pulls a stuck *received* payment forward. Fee story closed.
 - ~~**ENH-003 — Progressive scan UX.**~~ Shipped 2026-07-17: Home shows scan
   progress + “balance so far” during cold loads; USER_GUIDE explains restore.
+- ~~**ENH-004 — Security & trust + build provenance.**~~ Shipped 2026-07-17:
+  `/security` page + Settings commit link to the exact GitHub revision.
 - **FEAT-003 — Throwaway practice wallet.** Let true beginners learn on a seed
   with no connection to real funds. (The remaining Phase 1 item.)
 

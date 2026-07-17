@@ -67,6 +67,9 @@ date. Docs: <https://mempool.space/docs/api/rest>.
   (`useScanProgress`), not a silent skeleton.
 - **User-facing load copy** lives in USER_GUIDE §1 / §12 — keep it in sync if
   scan UX changes.
+- **Build provenance:** `next.config.ts` maps `VERCEL_GIT_COMMIT_SHA` →
+  `NEXT_PUBLIC_GIT_COMMIT_SHA` for the client. Display via `getBuildInfo()`
+  only (public SHA, not secrets). Security copy lives on `/security`.
 - **No secrets in env** — static client bundle; `NEXT_PUBLIC_` = public.
 - **Turbopack build** — don't add webpack-plugin-based tooling (why the SW is
   hand-rolled, not Serwist).
@@ -82,4 +85,4 @@ Vercel team **Liberty Concierge**. One push to `main` per change; never
 `vercel --prod` (double-bills). No Neon/DB for this project.
 
 ---
-_Last updated 2026-07-17 (ENH-003 progressive scan UX + USER_GUIDE restore/load guidance; v0.2.0)._
+_Last updated 2026-07-17 (ENH-004 Security & trust + commit provenance; ENH-003 progressive scan; v0.2.0)._

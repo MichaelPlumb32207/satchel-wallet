@@ -5,6 +5,21 @@ Version: 0.2.0
 
 ## Session Log
 
+### Session 4 — 2026-07-17 — Security & trust + build provenance (ENH-004)
+
+**Context:** Public repo is reviewable; users still need an in-app place that
+explains self-custody honestly and ties the live site to a specific commit.
+
+**Shipped:**
+- `/security` — Security & trust page (keys-on-device, never-do, threat model,
+  open source, this-build commit link). Linked from Settings footer.
+- `getBuildInfo` + `next.config` injects `VERCEL_GIT_COMMIT_SHA` /
+  `VERCEL_GIT_COMMIT_REF` as `NEXT_PUBLIC_GIT_*` so production shows a short
+  SHA linking to GitHub; local dev shows `dev`.
+- USER_GUIDE §8/§13; UC-028; CORE-16 tests.
+
+**Verification:** `npm run verify` this session.
+
 ### Session 3 — 2026-07-17 — Progressive balance / scan reassurance (ENH-003)
 
 **Context:** Mainnet cold balance loads feel “stuck” (gap scan of ~40 addresses

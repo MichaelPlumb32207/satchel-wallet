@@ -13,6 +13,7 @@ tables. Longer-term vision lives in [ROADMAP.md](ROADMAP.md).
 | ENH-001 | Enhancement | Network/Practice toggle unreachable on onboarding | Medium | Done (deployed) |
 | ENH-002 | Enhancement | Merge TEST_PLAN into USE_CASE_CATALOG (8-doc standard) | Low | Done |
 | ENH-003 | Enhancement | Progressive scan UX — “balance so far” + address counter on Home | Medium | Done |
+| ENH-004 | Enhancement | Security & trust page + deploy commit provenance | Medium | Done |
 
 ## Features (open)
 
@@ -40,6 +41,7 @@ random seed with no link to the real one, purely for learning.
 
 | ID | Type | Title | Completed |
 |----|------|-------|-----------|
+| ENH-004 | Enhancement | Security & trust page + git commit on Settings / deploy | 2026-07-17 |
 | ENH-003 | Enhancement | Progressive scan UX (provisional balance + progress copy; USER_GUIDE) | 2026-07-17 |
 | FEAT-001 | Feature | "Get free practice coins" faucet button (copies address on tap) | 2026-07-03 |
 | FEAT-002 | Feature | CPFP — "Speed up" a pending incoming payment (`planCpfp` + dialog, 11 tests) | 2026-07-03 |

@@ -55,3 +55,9 @@ every hot-wallet seed. On unlock, only account-level keys are derived into a
 module closure; the seed is wiped immediately. Watch-only keys are public data
 and stored unencrypted. **Your seed phrase is the only real backup — write it
 on paper.**
+
+**Trust & reviewability:** the app is open source (this repo). In the product,
+**Settings → Security & trust** explains the model and links production builds
+to the exact git commit that produced them (Vercel injects
+`VERCEL_GIT_COMMIT_SHA` at build time). Open source means reviewable — not
+that a formal third-party audit has been published.

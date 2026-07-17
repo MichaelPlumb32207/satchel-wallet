@@ -25,6 +25,13 @@ const csp = [
 ].join("; ");
 
 const nextConfig: NextConfig = {
+  // Bake Vercel's deploy git metadata into the client bundle so Settings /
+  // Security can link "this build" → the exact public GitHub commit.
+  // (VERCEL_GIT_* are available at build time on Vercel; empty locally.)
+  env: {
+    NEXT_PUBLIC_GIT_COMMIT_SHA: process.env.VERCEL_GIT_COMMIT_SHA ?? "",
+    NEXT_PUBLIC_GIT_COMMIT_REF: process.env.VERCEL_GIT_COMMIT_REF ?? "",
+  },
   async headers() {
     return [
       {

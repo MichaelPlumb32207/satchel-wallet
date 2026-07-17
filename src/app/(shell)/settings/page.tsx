@@ -15,6 +15,7 @@ import {
 import { useAccountNode } from '@/hooks/useWalletData';
 import { useSettingsStore } from '@/stores/settings';
 import { useActiveWallet, useWalletsStore } from '@/stores/wallets';
+import { getBuildInfo } from '@/lib/buildInfo';
 import { Button, Card, ErrorText, Input, Label, PageTitle } from '@/components/ui';
 
 export default function SettingsPage() {
@@ -29,9 +30,36 @@ export default function SettingsPage() {
       <DisplaySection />
       <SecuritySection />
       <DangerSection />
-      <p className="text-center text-xs text-neutral-600">
-        Satchel v0.1 — your keys never leave this device.
+      <AboutFooter />
+    </div>
+  );
+}
+
+function AboutFooter() {
+  const build = getBuildInfo();
+  return (
+    <div className="flex flex-col items-center gap-1.5 text-center text-xs text-neutral-600">
+      <p>
+        Satchel v{build.version}
+        {' · '}
+        {build.isProductionBuild ? (
+          <a
+            href={build.commitUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-mono text-neutral-500 hover:text-accent"
+            title="Source commit for this deploy"
+          >
+            {build.shortSha}
+          </a>
+        ) : (
+          <span className="font-mono">dev</span>
+        )}
       </p>
+      <p>Your keys never leave this device.</p>
+      <Link href="/security" className="text-accent hover:underline">
+        Security &amp; trust
+      </Link>
     </div>
   );
 }

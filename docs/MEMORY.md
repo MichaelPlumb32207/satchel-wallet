@@ -61,6 +61,9 @@ obvious from the code.
   coins…”, an address counter, and a provisional “balance so far” accumulated
   from address-info during the scan (`useScanProgress` / `balanceFromAddressInfo`).
   USER_GUIDE §1 and §12 spell this out in plain language.
+- **Trust ladder (partial):** ENH-004 ships an in-app Security & trust page and
+  deploy commit provenance (`VERCEL_GIT_COMMIT_SHA` → Settings/Security). Open
+  source = reviewable, not “formally audited.” Don’t overclaim audits.
 - **No secrets in env, ever.** Static client app: a `NEXT_PUBLIC_` var ships in
   the bundle. If a feature needs a secret, it must go behind a server route first.
 - **Spending unconfirmed:** the send flow refuses to spend unconfirmed coins

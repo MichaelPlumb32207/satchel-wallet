@@ -10,7 +10,7 @@ apart. Lower-level tests that back many use cases at once live under
 
 ## Testing strategy
 - **Automated (A):** Vitest over the pure crypto/wallet core — the highest-risk
-  code. `npm test` (108 tests). Referenced per use case and enumerated under
+  code. `npm test` (110 tests). Referenced per use case and enumerated under
   Automated core coverage.
 - **Manual (M):** testnet4 walkthrough in Practice mode with free faucet coins;
   step-by-step list in [testnet-checklist.md](testnet-checklist.md).
@@ -275,6 +275,18 @@ copy) to set up watch-only elsewhere.
 | UC-020·E1 | M | Wrong current password | Rejected |
 | UC-020·E2 | M | New password mismatch / too short | Blocked |
 
+### UC-028 — Security & trust (open source + build provenance)
+**Actor:** User · **Happy path:** From Settings, open Security & trust; read
+self-custody model and threat notes; open the public GitHub repo; on a
+production deploy, open the commit link for this build.
+
+| Test | Type | Scenario | Expected |
+|------|------|----------|----------|
+| UC-028·H | M | Settings → Security & trust | Page explains keys-on-device, never-do list, threat model, repo link |
+| UC-028·E1 | M | Production deploy (Vercel) | Short commit SHA links to matching GitHub commit; version shown |
+| UC-028·E2 | M | Local `npm run dev` | Commit shows as `dev` (no deploy SHA); repo link still works |
+| UC-028·E3 | A | `getBuildInfo` short SHA | 7-char prefix when full SHA present; `dev` when empty |
+
 ### UC-021 — Configure display & security
 **Actor:** User · **Happy path:** Set fiat currency, BTC/sats default, auto-lock
 timeout, and tab-hide lock behavior.
@@ -332,6 +344,7 @@ Pure-function suites in `src/**/*.test.ts` that underpin many use cases at once
 | CORE-13 | Scanner | Gap-limit scan across both chains; progress; stops at the gap |
 | CORE-14 | CPFP | `planCpfp` package fee math, relay floor, top-up trust rule, change targeting, error paths (11 tests) |
 | CORE-15 | Balance | `balanceFromAddressInfo` confirmed/pending from chain + mempool stats (3 tests) |
+| CORE-16 | Build info | `getBuildInfo` short SHA / dev fallback (trust provenance helper) |
 
 ## Known verification gaps
 - Live send + fee-bump + CPFP speed-up on testnet4 depend on faucet coins

@@ -2,6 +2,7 @@
 
 Last Updated: 2026-07-17
 
+
 The product overview and developer quick-start live in the
 [root README](../README.md). This folder holds the **eight living documents**,
 kept current on every change per the mandatory protocol (see
