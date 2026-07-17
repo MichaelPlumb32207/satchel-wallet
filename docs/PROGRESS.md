@@ -1,9 +1,28 @@
 # Satchel — Progress
 
-Last Updated: 2026-07-03
+Last Updated: 2026-07-17
 Version: 0.2.0
 
 ## Session Log
+
+### Session 3 — 2026-07-17 — Progressive balance / scan reassurance (ENH-003)
+
+**Context:** Mainnet cold balance loads feel “stuck” (gap scan of ~40 addresses
+on the paced public API). A blank skeleton is panic-inducing when the user
+expects coins. Time cost itself is accepted; clarity is not.
+
+**Shipped:**
+- Live scan progress (`useScanProgress`) during gap-limit scans: address count
+  + provisional balance from address-info (`balanceFromAddressInfo`) with no
+  extra API calls.
+- Home: “Looking for your coins…” + counter; shows **Balance so far** when
+  coins appear mid-scan; import `ScanStep` copy aligned.
+- USER_GUIDE §1 restore note + expanded §12 troubleshooting; UC-008 edges;
+  MEMORY gotcha. 3 new unit tests for address-info balance math.
+
+**Verification:** `npm test` / `npm run verify` (this session).
+
+**Next:** User smoke on mainnet cold open; FEAT-003 still open for Phase 1.
 
 ### Session 2 — 2026-07-03 — Phase 1: faucet button (FEAT-001) + CPFP "Speed up" (FEAT-002)
 

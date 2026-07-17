@@ -1,6 +1,6 @@
 # Satchel — Use Case Catalog
 
-Last Updated: 2026-07-03
+Last Updated: 2026-07-17
 
 Use cases with embedded verification. Each use case describes a flow (its happy
 path) and carries its own acceptance tests directly beneath it — happy path
@@ -10,7 +10,7 @@ apart. Lower-level tests that back many use cases at once live under
 
 ## Testing strategy
 - **Automated (A):** Vitest over the pure crypto/wallet core — the highest-risk
-  code. `npm test` (105 tests). Referenced per use case and enumerated under
+  code. `npm test` (108 tests). Referenced per use case and enumerated under
   Automated core coverage.
 - **Manual (M):** testnet4 walkthrough in Practice mode with free faucet coins;
   step-by-step list in [testnet-checklist.md](testnet-checklist.md).
@@ -244,6 +244,9 @@ fiat (mainnet only), pending indicator.
 | UC-008·H | M | Open Home with funds | Balance + fiat shown; tap toggles BTC/sats |
 | UC-008·E1 | A | sats↔BTC conversion + formatting | Exact (bigint), no float drift |
 | UC-008·E2 | M | Practice mode | No fiat shown (worthless by design) |
+| UC-008·E3 | M | Cold gap-scan (import / first open on a network) | “Looking for your coins…” + address counter; not a blank panic state |
+| UC-008·E4 | M | Coins found mid-scan | Provisional total shown as “Balance so far”; final UTXO sum replaces it when ready |
+| UC-008·E5 | A | `balanceFromAddressInfo` | Confirmed = chain funded−spent; pending = mempool funded−spent |
 
 ### UC-018 — Manage multiple wallets
 **Actor:** User · **Happy path:** Add additional hot/watch wallets under one
@@ -328,10 +331,12 @@ Pure-function suites in `src/**/*.test.ts` that underpin many use cases at once
 | CORE-12 | History | Tx classification (in/out/self), net amounts, dedupe, ordering |
 | CORE-13 | Scanner | Gap-limit scan across both chains; progress; stops at the gap |
 | CORE-14 | CPFP | `planCpfp` package fee math, relay floor, top-up trust rule, change targeting, error paths (11 tests) |
+| CORE-15 | Balance | `balanceFromAddressInfo` confirmed/pending from chain + mempool stats (3 tests) |
 
 ## Known verification gaps
 - Live send + fee-bump + CPFP speed-up on testnet4 depend on faucet coins
   (user smoke test; UC-027·H not yet run against the network).
 - mempool.space public API throttles request bursts; heavy restore scans can
   transiently rate-limit the browser's IP — mitigated by request pacing (see
-  [MEMORY.md](MEMORY.md)).
+  [MEMORY.md](MEMORY.md)). Progressive scan UI (ENH-003) reduces the
+  panic-inducing blank state but does not make the public API faster.

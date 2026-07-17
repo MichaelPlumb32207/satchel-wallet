@@ -1,6 +1,6 @@
 # Satchel — Memory
 
-Last Updated: 2026-07-03
+Last Updated: 2026-07-17
 
 Cross-session knowledge: decisions, architecture, and gotchas that aren't
 obvious from the code.
@@ -54,6 +54,13 @@ obvious from the code.
   ~250 ms spacing, 15 s per-attempt timeout, retry-on-network-error backoff.
   Scans run once per session (staleTime Infinity) with explicit invalidation,
   never on a timer.
+- **Cold balance load is inherently slow on mainnet.** A never-used wallet still
+  probes ~40 addresses (gap 20 × 2 chains) before the dashboard can finish;
+  with pacing that is ~10s best-case and much longer under throttle. Users who
+  expect coins and see a blank skeleton panic — so Home shows “Looking for your
+  coins…”, an address counter, and a provisional “balance so far” accumulated
+  from address-info during the scan (`useScanProgress` / `balanceFromAddressInfo`).
+  USER_GUIDE §1 and §12 spell this out in plain language.
 - **No secrets in env, ever.** Static client app: a `NEXT_PUBLIC_` var ships in
   the bundle. If a feature needs a secret, it must go behind a server route first.
 - **Spending unconfirmed:** the send flow refuses to spend unconfirmed coins

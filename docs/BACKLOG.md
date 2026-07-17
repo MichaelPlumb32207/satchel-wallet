@@ -1,6 +1,6 @@
 # Satchel — Backlog
 
-Last Updated: 2026-07-03
+Last Updated: 2026-07-17
 
 Tracks defects, enhancements, and features through their lifecycle. Priorities:
 Critical / High / Medium / Low. Detailed scoping for priority items follows the
@@ -12,6 +12,7 @@ tables. Longer-term vision lives in [ROADMAP.md](ROADMAP.md).
 |----|------|-------|----------|--------|
 | ENH-001 | Enhancement | Network/Practice toggle unreachable on onboarding | Medium | Done (deployed) |
 | ENH-002 | Enhancement | Merge TEST_PLAN into USE_CASE_CATALOG (8-doc standard) | Low | Done |
+| ENH-003 | Enhancement | Progressive scan UX — “balance so far” + address counter on Home | Medium | Done |
 
 ## Features (open)
 
@@ -39,6 +40,7 @@ random seed with no link to the real one, purely for learning.
 
 | ID | Type | Title | Completed |
 |----|------|-------|-----------|
+| ENH-003 | Enhancement | Progressive scan UX (provisional balance + progress copy; USER_GUIDE) | 2026-07-17 |
 | FEAT-001 | Feature | "Get free practice coins" faucet button (copies address on tap) | 2026-07-03 |
 | FEAT-002 | Feature | CPFP — "Speed up" a pending incoming payment (`planCpfp` + dialog, 11 tests) | 2026-07-03 |
 | — | Milestone | M1 — crypto core (@scure/@noble), 66 vector tests | 2026-07-03 |

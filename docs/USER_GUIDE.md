@@ -1,6 +1,6 @@
 # Satchel — User Guide
 
-Last Updated: 2026-07-03
+Last Updated: 2026-07-17
 
 Satchel is a Bitcoin wallet that lives in your browser. Your keys are made on
 your device and locked with your password — no company holds your money, and
@@ -19,6 +19,23 @@ When you first open Satchel you'll choose one of three paths:
 - **I have a seed phrase** — restore a wallet from its 12/24 words.
 - **Watch-only** — follow a wallet's balance using its public key (xpub),
   without the ability to spend.
+
+### Restoring or first unlock — why Home can take a minute
+
+After you import a seed (or unlock and switch to a network that hasn't been
+checked yet), Satchel **looks up past addresses one by one** on a public
+blockchain data service. It has to do that to find any coins you've received
+before — even if the balance turns out to be zero.
+
+- A **blank or spinning balance is not a wipe.** Your coins are on the
+  Bitcoin network; Satchel is still checking.
+- You'll see **how many addresses have been checked**, and if any coins are
+  found early you'll see a **“balance so far”** that grows as the search
+  continues.
+- **Mainnet** is often slower than Practice mode (more traffic on the free
+  public API). Give it up to a minute or two the first time.
+- Later visits on the same device are much faster — Satchel remembers what it
+  already found.
 
 ## 2. Practice mode (learn risk-free)
 
@@ -129,8 +146,15 @@ recovery for a lost password *and* a lost device.
 
 ## 12. Troubleshooting
 
-- **Balance slow to load?** The public data service throttles heavy use; give
-  it a moment. A fresh wallet loads instantly.
+- **Balance spinning / “Looking for your coins…”?** Normal on first check of a
+  network (import, unlock, or switching Mainnet ↔ Practice). Satchel walks
+  past receive and change addresses to find history. Watch the address counter;
+  if funds appear partway through, the total is labeled **balance so far**
+  until the search finishes. This is *not* your money disappearing.
+- **Balance still empty after the search finishes?** Confirm you're on the
+  right network (Mainnet vs Practice), that this is the same seed you funded,
+  and that payments were sent to addresses from this wallet. Practice and
+  Mainnet balances never mix.
 - **Faucet won't pay?** It's the faucet (often drained), not your address — try
   a different one.
 - **"Wrong network" when sending?** You're on Mainnet trying to pay a testnet

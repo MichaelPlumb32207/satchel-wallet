@@ -64,8 +64,14 @@ export function ScanStep({ walletId, onDone }: { walletId: string; onDone: () =>
     return (
       <Card className="flex flex-col items-center gap-3 py-8">
         <div className="h-8 w-8 animate-spin rounded-full border-2 border-neutral-700 border-t-accent" />
-        <p className="text-sm text-neutral-300">Looking for your transaction history…</p>
-        <p className="text-xs text-neutral-500">{checked} addresses checked</p>
+        <p className="text-sm text-neutral-300">Looking for your coins…</p>
+        <p className="max-w-xs text-center text-xs text-neutral-500">
+          Checking past addresses one by one. A blank result doesn&apos;t mean
+          they&apos;re gone — this can take a minute on a busy network.
+        </p>
+        <p className="text-xs tabular-nums text-neutral-500">
+          {checked} address{checked === 1 ? '' : 'es'} checked
+        </p>
       </Card>
     );
   }

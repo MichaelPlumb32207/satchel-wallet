@@ -1,6 +1,6 @@
 # Satchel — Roadmap
 
-Last Updated: 2026-07-03
+Last Updated: 2026-07-17
 
 Longer-term vision and phasing. The itemized, status-tracked list lives in
 [BACKLOG.md](BACKLOG.md); this is the "where it's going and why" view.
@@ -18,6 +18,8 @@ fee-management story.
   verified faucet with your address already on the clipboard.
 - ~~**FEAT-002 — CPFP "Speed up".**~~ Shipped 2026-07-03: RBF handles your own
   stuck sends; CPFP pulls a stuck *received* payment forward. Fee story closed.
+- ~~**ENH-003 — Progressive scan UX.**~~ Shipped 2026-07-17: Home shows scan
+  progress + “balance so far” during cold loads; USER_GUIDE explains restore.
 - **FEAT-003 — Throwaway practice wallet.** Let true beginners learn on a seed
   with no connection to real funds. (The remaining Phase 1 item.)
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import type { HDKey } from '@scure/bip32';
 import { useMemo } from 'react';
 import {
@@ -12,6 +12,7 @@ import {
   getRecommendedFees,
   getTipHeight,
 } from '@/lib/api/mempool';
+import type { AddressInfo } from '@/lib/api/types';
 import type { DerivedAddress } from '@/lib/bitcoin/derivation';
 import type { Chain } from '@/lib/bitcoin/types';
 import { getNetwork } from '@/lib/networks';
@@ -21,6 +22,31 @@ import { scanAccount, type ScanResult } from '@/lib/wallet/scanner';
 import { useSessionStore } from '@/stores/session';
 import { useSettingsStore } from '@/stores/settings';
 import type { WalletMeta } from '@/stores/wallets';
+
+export interface Balance {
+  confirmed: bigint;
+  pending: bigint;
+  total: bigint;
+}
+
+/** Confirmed + mempool balance implied by a mempool.space address-info payload. */
+export function balanceFromAddressInfo(info: AddressInfo): Balance {
+  const confirmed = BigInt(
+    info.chain_stats.funded_txo_sum - info.chain_stats.spent_txo_sum,
+  );
+  const pending = BigInt(
+    info.mempool_stats.funded_txo_sum - info.mempool_stats.spent_txo_sum,
+  );
+  return { confirmed, pending, total: confirmed + pending };
+}
+
+/** Live progress while a gap-limit scan is running (published via setQueryData). */
+export interface ScanProgress {
+  checked: number;
+  usedFound: number;
+  /** Running total from address-info on used addresses found so far. */
+  provisional: Balance | null;
+}
 
 /**
  * Account node for the active network. Re-resolves when the keyring
@@ -39,11 +65,17 @@ export function useAccountNode(wallet: WalletMeta | null): HDKey | null {
  * Gap-limit scan of the wallet's two chains. This is the source of truth
  * for "which addresses are ours" — balance/history/UTXO hooks build on it.
  * Query keys are namespaced by network, so switching networks swaps caches.
+ *
+ * While the scan runs, publishes live progress under
+ * `[network, 'scanProgress', walletId]` so the UI can show address-count
+ * progress and a provisional "balance so far" without waiting for the full
+ * gap (mainnet cold scans can take tens of seconds on the public API).
  */
 export function useWalletScan(wallet: WalletMeta | null) {
   const network = useSettingsStore((s) => s.network);
   const account = useAccountNode(wallet);
   const apiBase = getNetwork(network).apiBase;
+  const queryClient = useQueryClient();
 
   return useQuery<ScanResult>({
     queryKey: [network, 'scan', wallet?.id],
@@ -56,13 +88,58 @@ export function useWalletScan(wallet: WalletMeta | null) {
     refetchOnWindowFocus: false,
     retry: 1,
     queryFn: async ({ signal }) => {
+      const progressKey = [network, 'scanProgress', wallet!.id] as const;
+      let checked = 0;
+      let usedFound = 0;
+      let conf = 0n;
+      let pend = 0n;
+
+      const publish = () => {
+        queryClient.setQueryData<ScanProgress>(progressKey, {
+          checked,
+          usedFound,
+          provisional:
+            usedFound > 0
+              ? { confirmed: conf, pending: pend, total: conf + pend }
+              : null,
+        });
+      };
+      // Reset any leftover progress from a prior scan of this wallet.
+      publish();
+
       return scanAccount(account!, wallet!.scriptType, network, {
         isUsed: async (address) => {
           const info = await getAddressInfo(apiBase, address, signal);
-          return info.chain_stats.tx_count + info.mempool_stats.tx_count > 0;
+          checked++;
+          const used =
+            info.chain_stats.tx_count + info.mempool_stats.tx_count > 0;
+          if (used) {
+            usedFound++;
+            const b = balanceFromAddressInfo(info);
+            conf += b.confirmed;
+            pend += b.pending;
+          }
+          publish();
+          return used;
         },
       });
+      // Progress is left in the cache until the next scan so the home screen
+      // can keep showing "balance so far" while UTXOs load after the scan.
     },
+  });
+}
+
+/** Live scan progress (null when idle / cached / finished). */
+export function useScanProgress(wallet: WalletMeta | null) {
+  const network = useSettingsStore((s) => s.network);
+  return useQuery<ScanProgress | null>({
+    queryKey: [network, 'scanProgress', wallet?.id],
+    // Never fetched — only written by useWalletScan via setQueryData.
+    enabled: false,
+    staleTime: Infinity,
+    initialData: null,
+    // Keep the type honest when nothing has been written yet.
+    queryFn: async () => null,
   });
 }
 
@@ -135,12 +212,6 @@ export function useUtxos(wallet: WalletMeta | null) {
       return results.flat();
     },
   });
-}
-
-export interface Balance {
-  confirmed: bigint;
-  pending: bigint;
-  total: bigint;
 }
 
 export function useBalance(wallet: WalletMeta | null): Balance | null {

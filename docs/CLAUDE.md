@@ -1,6 +1,6 @@
 # Satchel — Project Intelligence (CLAUDE.md)
 
-Last Updated: 2026-07-03
+Last Updated: 2026-07-17
 Version: 0.2.0
 
 Authoritative context for AI assistants working on Satchel. The root
@@ -62,7 +62,11 @@ date. Docs: <https://mempool.space/docs/api/rest>.
 
 ## Gotchas
 - **mempool.space throttles bursts** — see MEMORY.md. Scans run once/session;
-  don't add polling that sweeps many addresses.
+  don't add polling that sweeps many addresses. Cold mainnet scans are slow by
+  design (~40 paced probes); Home must show progress + provisional balance
+  (`useScanProgress`), not a silent skeleton.
+- **User-facing load copy** lives in USER_GUIDE §1 / §12 — keep it in sync if
+  scan UX changes.
 - **No secrets in env** — static client bundle; `NEXT_PUBLIC_` = public.
 - **Turbopack build** — don't add webpack-plugin-based tooling (why the SW is
   hand-rolled, not Serwist).
@@ -78,4 +82,4 @@ Vercel team **Liberty Concierge**. One push to `main` per change; never
 `vercel --prod` (double-bills). No Neon/DB for this project.
 
 ---
-_Last updated 2026-07-03 (v0.2.0 — FEAT-001 faucet button + FEAT-002 CPFP "Speed up" shipped; ENH-001 confirmed deployed)._
+_Last updated 2026-07-17 (ENH-003 progressive scan UX + USER_GUIDE restore/load guidance; v0.2.0)._
